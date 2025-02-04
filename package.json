@@ -1,0 +1,20 @@
+{
+  "name": "prism_backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.3.1",
+    "@types/express": "^5.0.0",
+    "express": "^4.21.2",
+    "prisma": "^6.3.1",
+    "typescript": "^5.7.3",
+    "zod": "^3.24.1"
+  }
+}
