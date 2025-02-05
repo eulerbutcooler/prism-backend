@@ -8,26 +8,27 @@ exports.registrationSchema = zod_1.z.object({
     department: zod_1.z.enum(["cse", "ece", "it", "ee", "me", "ce"], {
         message: "Invalid department",
     }),
-    year: zod_1.z.enum(["1st year", "2nd year", "3rd year", "4th year"], {
+    year: zod_1.z.enum(["1st", "2nd", "3rd", "4th"], {
         message: "Invalid academic year",
     }),
     email: zod_1.z.string().email({ message: "Invalid email" }),
     contactNumber: zod_1.z.string().max(10, { message: "Invalid contact number" }),
     gender: zod_1.z
-        .enum(["male", "female", "other"], { message: "Invalid gender details" })
+        .enum(["Male", "Female", "Other", ""], {
+        message: "Invalid gender details",
+    })
         .optional(),
-    type: zod_1.z.enum(["solo", "team"], { message: "Invalid" }),
+    type: zod_1.z.enum(["SOLO", "TEAM"], { message: "Invalid" }),
 });
 const memberSchema = zod_1.z.object({
     name: zod_1.z.string().min(1, "Member name is required"),
 });
 const soloParticipationSchema = exports.registrationSchema.extend({
     type: zod_1.z.literal("SOLO"),
-    members: zod_1.z.never().optional(),
 });
 const teamParticipationSchema = exports.registrationSchema.extend({
     type: zod_1.z.literal("TEAM"),
-    members: zod_1.z.array(memberSchema).min(3, "Team must have 4 members only"),
+    members: zod_1.z.array(memberSchema).min(4, "Team must have 4 members only"),
 });
 const participantSchema = zod_1.z.union([
     soloParticipationSchema,

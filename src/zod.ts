@@ -8,15 +8,17 @@ export const registrationSchema = z.object({
   department: z.enum(["cse", "ece", "it", "ee", "me", "ce"], {
     message: "Invalid department",
   }),
-  year: z.enum(["1st year", "2nd year", "3rd year", "4th year"], {
+  year: z.enum(["1st", "2nd", "3rd", "4th"], {
     message: "Invalid academic year",
   }),
   email: z.string().email({ message: "Invalid email" }),
   contactNumber: z.string().max(10, { message: "Invalid contact number" }),
   gender: z
-    .enum(["male", "female", "other"], { message: "Invalid gender details" })
+    .enum(["Male", "Female", "Other", ""], {
+      message: "Invalid gender details",
+    })
     .optional(),
-  type: z.enum(["solo", "team"], { message: "Invalid" }),
+  type: z.enum(["SOLO", "TEAM"], { message: "Invalid" }),
 });
 
 const memberSchema = z.object({
@@ -25,7 +27,6 @@ const memberSchema = z.object({
 
 const soloParticipationSchema = registrationSchema.extend({
   type: z.literal("SOLO"),
-  members: z.never().optional(),
 });
 
 const teamParticipationSchema = registrationSchema.extend({
