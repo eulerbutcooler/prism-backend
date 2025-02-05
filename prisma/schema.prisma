@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,16 +8,19 @@ datasource db {
 }
 
 model Participant {
-  id            Int             @id @default(autoincrement())
+  id            Int                    @id @default(autoincrement())
   name          String
+  password      String
   university    String
+  course        String
   department    String
   year          String
-  email         String          @unique
-  contactNumber String          @unique
+  email         String                 @unique
+  contactNumber String                 @unique
   gender        String?
   type          ParticipantType
   members       Member[]
+  events        ParticipantsOnEvents[]
 }
 
 model Member {
@@ -31,6 +28,22 @@ model Member {
   name          String
   participant   Participant @relation(fields: [participantId], references: [id])
   participantId Int
+}
+
+model Events {
+  id           Int                    @id @default(autoincrement())
+  name         String                 @unique
+  type         ParticipantType
+  participants ParticipantsOnEvents[]
+}
+
+model ParticipantsOnEvents {
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId Int
+  event         Events      @relation(fields: [eventId], references: [id])
+  eventId       Int
+
+  @@id([participantId, eventId]) // Composite primary key for many-to-many relation
 }
 
 enum ParticipantType {

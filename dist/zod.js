@@ -4,6 +4,7 @@ exports.registrationMiddleware = exports.registrationSchema = void 0;
 const zod_1 = require("zod");
 exports.registrationSchema = zod_1.z.object({
     name: zod_1.z.string({ message: "Name is required" }),
+    course: zod_1.z.string({ message: "Course is required" }),
     university: zod_1.z.string(),
     department: zod_1.z.enum(["cse", "ece", "it", "ee", "me", "ce"], {
         message: "Invalid department",
@@ -12,6 +13,9 @@ exports.registrationSchema = zod_1.z.object({
         message: "Invalid academic year",
     }),
     email: zod_1.z.string().email({ message: "Invalid email" }),
+    password: zod_1.z
+        .string()
+        .max(8, { message: "Password must be 8 characters long" }),
     contactNumber: zod_1.z.string().max(10, { message: "Invalid contact number" }),
     gender: zod_1.z
         .enum(["Male", "Female", "Other", ""], {

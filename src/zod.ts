@@ -4,6 +4,7 @@ import { Result } from "@prisma/client/runtime/library";
 
 export const registrationSchema = z.object({
   name: z.string({ message: "Name is required" }),
+  course: z.string({ message: "Course is required" }),
   university: z.string(),
   department: z.enum(["cse", "ece", "it", "ee", "me", "ce"], {
     message: "Invalid department",
@@ -12,6 +13,9 @@ export const registrationSchema = z.object({
     message: "Invalid academic year",
   }),
   email: z.string().email({ message: "Invalid email" }),
+  password: z
+    .string()
+    .max(8, { message: "Password must be 8 characters long" }),
   contactNumber: z.string().max(10, { message: "Invalid contact number" }),
   gender: z
     .enum(["Male", "Female", "Other", ""], {
