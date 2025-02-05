@@ -30,7 +30,7 @@ const soloParticipationSchema = registrationSchema.extend({
 
 const teamParticipationSchema = registrationSchema.extend({
   type: z.literal("TEAM"),
-  members: z.array(memberSchema).min(3, "Team must have 4 members only"),
+  members: z.array(memberSchema).min(4, "Team must have 4 members only"),
 });
 
 const participantSchema = z.union([

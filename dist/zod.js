@@ -27,7 +27,7 @@ const soloParticipationSchema = exports.registrationSchema.extend({
 });
 const teamParticipationSchema = exports.registrationSchema.extend({
     type: zod_1.z.literal("TEAM"),
-    members: zod_1.z.array(memberSchema).min(4, "Team must have 4 members"),
+    members: zod_1.z.array(memberSchema).min(3, "Team must have 4 members only"),
 });
 const participantSchema = zod_1.z.union([
     soloParticipationSchema,

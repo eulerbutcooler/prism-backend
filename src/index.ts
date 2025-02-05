@@ -86,4 +86,6 @@ app.post(
   },
 );
 
-app.listen(8888);
+app.listen(8888, () => {
+  console.log("up and running");
+});

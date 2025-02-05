@@ -83,4 +83,6 @@ app.post("/registration/team", existingUser, zod_1.registrationMiddleware, (req,
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
-app.listen(8888);
+app.listen(8888, () => {
+    console.log("up and running");
+});
