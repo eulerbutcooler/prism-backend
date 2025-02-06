@@ -19,9 +19,20 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 dotenv_1.default.config();
+const cors_1 = __importDefault(require("cors"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
+app.use((0, cors_1.default)());
+app.use((0, cookie_parser_1.default)());
+// OR configure CORS options
+app.use((0, cors_1.default)({
+    origin: "http://localhost:5173/",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // Allow cookies if needed
+}));
 const JWT_SECRET = process.env.JWT_SECRET;
 // 📌 Generate JWT Token
 const generateToken = (email) => {
@@ -38,12 +49,12 @@ const comparePasswords = (password, hash) => __awaiter(void 0, void 0, void 0, f
 });
 // 📌 JWT Middleware
 const authenticateJWT = (req, res, next) => {
-    var _a;
-    const token = (_a = req.header("Authorization")) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
+    const token = req.cookies.token;
     if (!token) {
         res.status(401).json({ message: "Unauthorized" });
         return;
     }
+    //@ts-ignore
     jsonwebtoken_1.default.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
             res.status(403).json({ message: "Forbidden" });
@@ -73,20 +84,36 @@ const existingUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
+app.post("/events", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const body = req.body;
+        yield prisma.events.create({
+            data: {
+                name: body.name,
+                type: body.type,
+            },
+        });
+        res.status(200).json("hogaya");
+    }
+    catch (err) {
+        console.error(err);
+        res.status(400).json("nahi hua");
+    }
+}));
 // 📌 Registration Route
-app.post("/registration/team", existingUser, zod_1.registrationMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/registration/participant", existingUser, zod_1.registrationMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const body = req.body;
         const hashedPassword = yield hashPassword(body.password);
         yield prisma.participant.create({
             data: {
                 name: body.name,
-                course: body.name,
+                course: body.course,
                 university: body.university,
                 department: body.department,
                 year: body.year,
                 email: body.email,
-                password: body.password,
+                password: hashedPassword,
                 contactNumber: body.contactNumber,
                 gender: body.gender,
                 type: body.type,
@@ -96,10 +123,67 @@ app.post("/registration/team", existingUser, zod_1.registrationMiddleware, (req,
             },
         });
         const token = generateToken(body.email);
-        res.status(201).json({ message: "Team registered successfully", token });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.status(201).json({ message: "Registered successfully" });
     }
     catch (error) {
         console.error("Error creating team: ", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}));
+// 📌 Event Registration
+app.post("/events/:eventId/register", authenticateJWT, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const eventId = parseInt(req.params.eventId);
+        const userEmail = req.user.email;
+        const participant = yield prisma.participant.findUnique({
+            where: { email: userEmail },
+            select: { id: true, type: true },
+        });
+        if (!participant) {
+            res.status(404).json({ message: "Participant not found" });
+            return;
+        }
+        const event = yield prisma.events.findUnique({
+            where: { id: eventId },
+        });
+        if (!event) {
+            res.status(404).json({ message: "Event not found" });
+            return;
+        }
+        if (participant.type !== event.type) {
+            res.status(400).json({
+                message: `Event requires ${event.type.toLowerCase()} participants`,
+            });
+            return;
+        }
+        const existingRegistration = yield prisma.participantsOnEvents.findUnique({
+            where: {
+                participantId_eventId: {
+                    participantId: participant.id,
+                    eventId: eventId,
+                },
+            },
+        });
+        if (existingRegistration) {
+            res.status(400).json({ message: "Already registered for this event" });
+            return;
+        }
+        yield prisma.participantsOnEvents.create({
+            data: {
+                participantId: participant.id,
+                eventId: eventId,
+            },
+        });
+        res.status(201).json({ message: "Successfully registered for event" });
+    }
+    catch (error) {
+        console.error("Event registration error:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }));
@@ -116,6 +200,12 @@ app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return;
         }
         const token = generateToken(email);
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
         res.json({ message: "Login successful", token });
     }
     catch (error) {

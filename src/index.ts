@@ -5,10 +5,24 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 dotenv.config();
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const prisma = new PrismaClient();
 const app = express();
 app.use(express.json());
+app.use(cors());
+app.use(cookieParser());
+
+// OR configure CORS options
+app.use(
+  cors({
+    origin: "http://localhost:5173/", // Replace with your frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
+    credentials: true, // Allow cookies if needed
+  }),
+);
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
@@ -30,13 +44,13 @@ const comparePasswords = async (password: string, hash: string) => {
 
 // 📌 JWT Middleware
 const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.header("Authorization")?.split(" ")[1];
+  const token = req.cookies.token;
 
   if (!token) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
-
+  //@ts-ignore
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       res.status(403).json({ message: "Forbidden" });
@@ -75,9 +89,25 @@ const existingUser = async (
   }
 };
 
+app.post("/events", async (req, res) => {
+  try {
+    const body = req.body;
+    await prisma.events.create({
+      data: {
+        name: body.name,
+        type: body.type,
+      },
+    });
+    res.status(200).json("hogaya");
+  } catch (err) {
+    console.error(err);
+    res.status(400).json("nahi hua");
+  }
+});
+
 // 📌 Registration Route
 app.post(
-  "/registration/team",
+  "/registration/participant",
   existingUser,
   registrationMiddleware,
   async (req, res) => {
@@ -105,13 +135,80 @@ app.post(
       });
 
       const token = generateToken(body.email);
-      res.status(201).json({ message: "Team registered successfully", token });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+      res.status(201).json({ message: "Registered successfully" });
     } catch (error) {
       console.error("Error creating team: ", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   },
 );
+
+// 📌 Event Registration
+
+app.post("/events/:eventId/register", authenticateJWT, async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    const userEmail = (req as any).user.email;
+
+    const participant = await prisma.participant.findUnique({
+      where: { email: userEmail },
+      select: { id: true, type: true },
+    });
+
+    if (!participant) {
+      res.status(404).json({ message: "Participant not found" });
+      return;
+    }
+
+    const event = await prisma.events.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) {
+      res.status(404).json({ message: "Event not found" });
+      return;
+    }
+
+    if (participant.type !== event.type) {
+      res.status(400).json({
+        message: `Event requires ${event.type.toLowerCase()} participants`,
+      });
+      return;
+    }
+
+    const existingRegistration = await prisma.participantsOnEvents.findUnique({
+      where: {
+        participantId_eventId: {
+          participantId: participant.id,
+          eventId: eventId,
+        },
+      },
+    });
+
+    if (existingRegistration) {
+      res.status(400).json({ message: "Already registered for this event" });
+      return;
+    }
+
+    await prisma.participantsOnEvents.create({
+      data: {
+        participantId: participant.id,
+        eventId: eventId,
+      },
+    });
+
+    res.status(201).json({ message: "Successfully registered for event" });
+  } catch (error) {
+    console.error("Event registration error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 // 📌 Login Route
 app.post("/login", async (req, res) => {
@@ -129,6 +226,12 @@ app.post("/login", async (req, res) => {
     }
 
     const token = generateToken(email);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
     res.json({ message: "Login successful", token });
   } catch (error) {
     console.error("Login error: ", error);
