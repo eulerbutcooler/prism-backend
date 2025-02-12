@@ -60,11 +60,38 @@ export const registerController = async (req: Request, res: Response) => {
   }
 };
 
-// export const unregisterController = async (req:Request, res:Response)=>{
-//   try{
+export const unregisterController = async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
 
-//   }
-// }
+    const participant = await prisma.participant.findUnique({
+      where: {
+        email: userEmail,
+      },
+      select: {
+        id: true,
+        type: true,
+      },
+    });
+
+    if (!participant) {
+      res.status(400).json({ message: "Participant not found" });
+      return;
+    }
+    const { eventId } = req.body;
+    const eventUnregister = await prisma.participantsOnEvents.delete({
+      where: {
+        participantId_eventId: {
+          participantId: participant.id,
+          eventId: eventId,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error unregistering participant from event:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 export const eventPopulate = async (req: Request, res: Response) => {
   try {
