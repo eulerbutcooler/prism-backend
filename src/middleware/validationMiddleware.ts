@@ -1,8 +1,17 @@
 import { z } from "zod";
 import { Request, Response, NextFunction } from "express";
-import { Result } from "@prisma/client/runtime/library";
+import prisma from "../lib/db";
+import { parse } from "dotenv";
 
-export const registrationSchema = z.object({
+const loginSchema = z.object({
+  email: z.string().email({ message: "Invalid email" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be 8 characters long" })
+    .max(12, { message: "Password can only be 12 characters long" }),
+});
+
+const registrationSchema = z.object({
   name: z.string({ message: "Name is required" }),
   course: z.string({ message: "Course is required" }),
   university: z.string(),
@@ -15,7 +24,8 @@ export const registrationSchema = z.object({
   email: z.string().email({ message: "Invalid email" }),
   password: z
     .string()
-    .max(8, { message: "Password must be 8 characters long" }),
+    .min(8, { message: "Password must be 8 characters long" })
+    .max(12, { message: "Password can only be 12 characters long" }),
   contactNumber: z.string().max(10, { message: "Invalid contact number" }),
   gender: z
     .enum(["Male", "Female", "Other", ""], {
@@ -57,4 +67,46 @@ export const registrationMiddleware = (
   }
   req.body = parsedBody.data;
   next();
+};
+
+export const loginMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const parsedBody = loginSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    res
+      .status(400)
+      .json({ error: "Invalid details", details: parsedBody.error.errors });
+    return;
+  }
+  req.body = parsedBody.data;
+  next();
+};
+
+export const existingUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email, contactNumber } = req.body;
+
+    const user = await prisma.participant.findFirst({
+      where: {
+        OR: [{ email }, { contactNumber }],
+      },
+    });
+
+    if (user) {
+      res.status(400).json({ message: "User already exists" });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error checking user: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
