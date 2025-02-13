@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.eventPopulate = exports.registerController = void 0;
+exports.eventPopulate = exports.unregisterController = exports.registerController = void 0;
 const db_1 = __importDefault(require("../lib/db"));
 const registerController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -65,10 +65,38 @@ const registerController = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.registerController = registerController;
-// export const unregisterController = async (req:Request, res:Response)=>{
-//   try{
-//   }
-// }
+const unregisterController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userEmail = req.user.email;
+        const participant = yield db_1.default.participant.findUnique({
+            where: {
+                email: userEmail,
+            },
+            select: {
+                id: true,
+                type: true,
+            },
+        });
+        if (!participant) {
+            res.status(400).json({ message: "Participant not found" });
+            return;
+        }
+        const { eventId } = req.body;
+        const eventUnregister = yield db_1.default.participantsOnEvents.delete({
+            where: {
+                participantId_eventId: {
+                    participantId: participant.id,
+                    eventId: eventId,
+                },
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error unregistering participant from event:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+exports.unregisterController = unregisterController;
 const eventPopulate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, type } = req.body;

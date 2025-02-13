@@ -9,4 +9,5 @@ const eventController_1 = require("../controller/eventController");
 const eventRouter = express_1.default.Router();
 eventRouter.post("/:eventId/register", authMiddleware_1.authMiddleware, eventController_1.registerController);
 eventRouter.post("/populate", eventController_1.eventPopulate);
+eventRouter.put("/unregister", authMiddleware_1.authMiddleware, eventController_1.unregisterController);
 exports.default = eventRouter;
