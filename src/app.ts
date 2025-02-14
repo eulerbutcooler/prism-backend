@@ -21,7 +21,7 @@ app.use("/participant", userRoutes);
 app.use("/event", eventRoutes);
 
 app.get("/", (req, res) => {
-  res.json({ message: "server is running on droplet" });
+  res.json({ message: "server is running on droplet woohoo" });
 });
 
 export default app;
