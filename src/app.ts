@@ -20,8 +20,8 @@ app.use(cookieParser());
 app.use("/participant", userRoutes);
 app.use("/event", eventRoutes);
 
-app.get("/", () => {
-  console.log("server is running woohoo");
+app.get("/", (req, res) => {
+  res.json({ message: "server is running on droplet" });
 });
 
 export default app;
