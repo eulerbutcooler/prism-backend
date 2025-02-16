@@ -2,6 +2,8 @@ import express from "express";
 import {
   signupController,
   loginController,
+  requestPasswordReset,
+  resetPassword,
 } from "../controller/userController";
 import {
   registrationMiddleware,
@@ -19,4 +21,6 @@ userRouter.post(
 
 userRouter.post("/login", loginMiddleware, existingUser, loginController);
 
+userRouter.post("/requestPasswordReset", requestPasswordReset);
+userRouter.post("/resetPassword/:id/:token", resetPassword);
 export default userRouter;
