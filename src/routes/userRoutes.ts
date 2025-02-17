@@ -19,7 +19,7 @@ userRouter.post(
   signupController,
 );
 
-userRouter.post("/login", loginMiddleware, existingUser, loginController);
+userRouter.post("/login", loginMiddleware, loginController);
 
 userRouter.post("/requestPasswordReset", requestPasswordReset);
 userRouter.post("/resetPassword/:id/:token", resetPassword);

@@ -5,17 +5,24 @@ import userRoutes from "./routes/userRoutes";
 import eventRoutes from "./routes/eventRoutes";
 const app = express();
 app.use(express.json());
-app.use(cors());
 app.use(cookieParser());
 
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173/",
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//     credentials: true,
-//   }),
-// );
+const allowedOrigins = ["https://prism2025.tech", "http://localhost:5173"];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  }),
+);
 
 app.use("/participant", userRoutes);
 app.use("/event", eventRoutes);
