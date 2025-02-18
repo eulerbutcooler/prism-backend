@@ -38,9 +38,10 @@ export const signupController = async (req: Request, res: Response) => {
     const token = generateToken(body.email);
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false,
+      sameSite: "none",
       maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: "/",
     });
     res.status(201).json({ message: "Registered successfully" });
   } catch (error) {
@@ -65,9 +66,10 @@ export const loginController = async (req: Request, res: Response) => {
     const token = generateToken(email);
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false,
+      sameSite: "none",
       maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: "/",
     });
     res.json({ message: "Login successful", token });
   } catch (error) {
@@ -99,7 +101,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       expiresIn: "1h",
     });
     const backend_url = process.env.BACKEND_URL;
-    const resetUrl = `${backend_url}/participant/resetpassword/${user.id}/${token}`;
+    const resetUrl = `http://localhost:5173/passwordReset/${user.id}/${token}`;
 
     const transporter = nodemailer.createTransport({
       host: "smtp.titan.email",

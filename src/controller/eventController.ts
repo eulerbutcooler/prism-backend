@@ -96,7 +96,7 @@ export const unregisterController = async (req: Request, res: Response) => {
 export const eventPopulate = async (req: Request, res: Response) => {
   try {
     const { name, type } = req.body;
-    const event = prisma.events.create({
+    const event = await prisma.events.create({
       data: {
         name: name,
         type: type,
