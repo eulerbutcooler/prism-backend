@@ -1,4 +1,4 @@
-import { Response, Request } from "express";
+import e, { Response, Request } from "express";
 import prisma from "../lib/db";
 
 export const registerController = async (req: Request, res: Response) => {
@@ -89,6 +89,26 @@ export const unregisterController = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error unregistering participant from event:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const userEvents = async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+    const events = await prisma.events.findMany({
+      where: {
+        participants: {
+          some: {
+            participant: {
+              email: userEmail,
+            },
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error finding user registered events:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
