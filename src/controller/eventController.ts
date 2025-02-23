@@ -5,6 +5,7 @@ export const registerController = async (req: Request, res: Response) => {
   try {
     const eventId = parseInt(req.params.eventId);
     const userEmail = (req as any).user.email;
+    console.log("user email", userEmail);
 
     const participant = await prisma.participant.findUnique({
       where: { email: userEmail },
@@ -87,13 +88,14 @@ export const unregisterController = async (req: Request, res: Response) => {
         },
       },
     });
+    res.status(201).json({ message: "Unregistered for the event" });
   } catch (error) {
     console.error("Error unregistering participant from event:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export const userEvents = async (req: Request, res: Response) => {
+export const registeredEvents = async (req: Request, res: Response) => {
   try {
     const userEmail = (req as any).user.email;
     const events = await prisma.events.findMany({
@@ -107,23 +109,24 @@ export const userEvents = async (req: Request, res: Response) => {
         },
       },
     });
+    res.status(200).json(events);
   } catch (error) {
     console.error("Error finding user registered events:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export const eventPopulate = async (req: Request, res: Response) => {
-  try {
-    const { name, type } = req.body;
-    const event = await prisma.events.create({
-      data: {
-        name: name,
-        type: type,
-      },
-    });
-    res.status(200).json("hogaya");
-  } catch (error) {
-    res.status(400).json("nahi hua");
-  }
-};
+// export const eventPopulate = async (req: Request, res: Response) => {
+//   try {
+//     const { name, type } = req.body;
+//     const event = await prisma.events.create({
+//       data: {
+//         name: name,
+//         type: type,
+//       },
+//     });
+//     res.status(200).json("hogaya");
+//   } catch (error) {
+//     res.status(400).json("nahi hua");
+//   }
+// };
