@@ -179,6 +179,7 @@ export const signupController = async (req: Request, res: Response) => {
         contactNumber: body.contactNumber,
         gender: body.gender,
         type: body.type,
+        deletedAt: null,
         members: {
           create: body.members,
         },
