@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
+import { existingUser } from "../middleware/validationMiddleware";
 dotenv.config();
 
 export const teamController = async (req: Request, res: Response) => {
@@ -67,64 +68,67 @@ export const teamExistsController = async (req: Request, res: Response) => {
   }
 };
 
-export const updateController = async (req: Request, res: Response) => {
-  try {
-    const body = req.body;
-    const userEmail = (req as any).user.email;
+// export const updateController = async (req: Request, res: Response) => {
+//   try {
+//     const body = req.body;
+//     const userEmail = (req as any).user.email;
 
-    const participant = await prisma.participant.findUnique({
-      where: {
-        email: userEmail,
-      },
-      select: {
-        id: true,
-        members: { select: { id: true, name: true } },
-      },
-    });
-    if (!participant) {
-      res.status(400).json({ message: "Participant not found" });
-      return;
-    }
+//     const participant = await prisma.participant.findUnique({
+//       where: {
+//         email: userEmail,
+//       },
+//       select: {
+//         id: true,
+//         members: { select: { id: true, name: true } },
+//       },
+//     });
+//     if (!participant) {
+//       res.status(400).json({ message: "Participant not found" });
+//       return;
+//     }
 
-    if(body.members){
+//     if(body.members){
 
-      const newMembers = body.members.filter((m:any)=>!m.id).map((m:any)=>{name: m.name})
+//       const newMembers = body.members.filter((m:any)=>!m.id).map((m:any)=>{name: m.name})
 
-      const existingMembers = body.members.filter((m: any)=>m.name).map((m:any)=>{
-        where: {
-          id:
-            },
-            data: {
-              name: m.name
-        }
-      })
+//       const existingMembers = body.members.filter((m: any)=>m.name).map((m:any)=>{
+//         where: {
+//           id:
+//             },
+//             data: {
+//               name: m.name
+//         }
+//       })
 
-    const updateParticipant = await prisma.participant.update({
-      where: {
-        email: userEmail,
-        deletedAt: null,
-      },
-      data: { ...body },
-      select: {
-        teamname: true,
-        username: true,
-        university: true,
-        course: true,
-        department: true,
-        year: true,
-        gender: true,
-        type: true,
-        members: true,
-        email: true,
-        contactNumber: true,
-      },
-    });
-    res.status(201).json({ message: "Updated the user", updateParticipant });
-  } catch (error) {
-    console.error("Error updating the participant", error);
-    res.status(401).json({ error: "Couldn't update the participant" });
-  }
-};
+//     const updateParticipant = await prisma.participant.update({
+//       where: {
+//         email: userEmail,
+//         deletedAt: null,
+//       },
+//       data: {...body, members: {
+//         create: newMembers,
+//         update:
+//       } },
+//       select: {
+//         teamname: true,
+//         username: true,
+//         university: true,
+//         course: true,
+//         department: true,
+//         year: true,
+//         gender: true,
+//         type: true,
+//         members: true,
+//         email: true,
+//         contactNumber: true,
+//       },
+//     });
+//     res.status(201).json({ message: "Updated the user", updateParticipant });
+//   } catch (error) {
+//     console.error("Error updating the participant", error);
+//     res.status(401).json({ error: "Couldn't update the participant" });
+//   }
+// };
 
 export const userDetailsController = async (req: Request, res: Response) => {
   try {
