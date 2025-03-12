@@ -11,6 +11,129 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 dotenv.config();
 
+export const teamController = async (req: Request, res: Response) => {
+  try {
+    const body = req.body;
+    const userEmail = (req as any).user.email;
+    const participant = await prisma.participant.findUnique({
+      where: {
+        email: userEmail,
+      },
+    });
+    if (!participant) {
+      res.status(400).json({ message: "Participant not found" });
+      return;
+    }
+    const addTeam = await prisma.participant.update({
+      where: {
+        email: userEmail,
+      },
+      data: {
+        type: "MULTI",
+        teamname: body.teamname,
+        members: {
+          create: body.members,
+        },
+      },
+      select: {
+        teamname: true,
+        members: true,
+      },
+    });
+    res.status(201).json({ message: "Added team", addTeam });
+  } catch (error) {
+    console.error("Error adding the team", error);
+    res.status(401).json({ error: "Couldn't add the team" });
+  }
+};
+
+export const updateController = async (req: Request, res: Response) => {
+  try {
+    const body = req.body;
+    const userEmail = (req as any).user.email;
+
+    const participant = await prisma.participant.findUnique({
+      where: {
+        email: userEmail,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (!participant) {
+      res.status(400).json({ message: "Participant not found" });
+      return;
+    }
+
+    const exisitingMembers = body.members
+      .filter((m: any) => m.id)
+      .map((m: any) => m.id);
+    await prisma.member.deleteMany({
+      where: {
+        participantId: participant.id,
+        id: { notIn: exisitingMembers },
+      },
+    });
+
+    const updateMembers = body.members
+      .filter((m: any) => m.id)
+      .map((member: { id: number; name: string }) => ({
+        where: {
+          id: member.id,
+          participantId: participant.id,
+        },
+        data: {
+          name: member.name,
+        },
+      }));
+
+    const createMembers = body.members
+      .filter((m: any) => !m.id)
+      .map((member: { name: string }) => ({
+        name: member.name,
+        participantId: participant.id,
+      }));
+
+    const updateParticipant = await prisma.participant.update({
+      where: {
+        email: userEmail,
+        deletedAt: null,
+      },
+      data: {
+        teamname: body.teamname,
+        username: body.username,
+        university: body.university,
+        course: body.course,
+        department: body.department,
+        year: body.year,
+        gender: body.gender,
+        type: body.type,
+        members: {
+          updateMany: updateMembers,
+          create: createMembers,
+        },
+      },
+      select: {
+        teamname: true,
+        username: true,
+        university: true,
+        course: true,
+        department: true,
+        year: true,
+        gender: true,
+        type: true,
+        members: true,
+        email: true,
+        contactNumber: true,
+      },
+    });
+    res.status(201).json({ message: "Updated the user", updateParticipant });
+  } catch (error) {
+    console.error("Error updating the participant", error);
+    res.status(401).json({ error: "Couldn't update the participant" });
+  }
+};
+
 export const signupController = async (req: Request, res: Response) => {
   try {
     const body = req.body;
@@ -19,7 +142,7 @@ export const signupController = async (req: Request, res: Response) => {
 
     await prisma.participant.create({
       data: {
-        name: body.name,
+        username: body.name,
         course: body.course,
         university: body.university,
         department: body.department,
@@ -50,11 +173,25 @@ export const signupController = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteController = async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+    await prisma.participant.update({
+      where: {
+        email: userEmail,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+  } catch (error) {}
+};
+
 export const loginController = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     const user = await prisma.participant.findUnique({
-      where: { email },
+      where: { email, deletedAt: null },
       select: { password: true },
     });
 
@@ -84,6 +221,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     const user = await prisma.participant.findUnique({
       where: {
         email: email,
+        deletedAt: null,
       },
       select: {
         id: true,
@@ -139,6 +277,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     const user = await prisma.participant.findUnique({
       where: {
         id: parseInt(id),
+        deletedAt: null,
       },
       select: {
         password: true,

@@ -32,7 +32,7 @@ const registrationSchema = z.object({
       message: "Invalid gender details",
     })
     .optional(),
-  type: z.enum(["SOLO", "TEAM"], { message: "Invalid" }),
+  type: z.enum(["SOLO", "TEAM", "MULTI"], { message: "Invalid" }),
 });
 
 const memberSchema = z.object({
@@ -45,7 +45,7 @@ const soloParticipationSchema = registrationSchema.extend({
 
 const teamParticipationSchema = registrationSchema.extend({
   type: z.literal("TEAM"),
-  members: z.array(memberSchema).min(4, "Team must have 4 members only"),
+  members: z.array(memberSchema).min(3, "Team must have 3 or more members"),
 });
 
 const participantSchema = z.union([

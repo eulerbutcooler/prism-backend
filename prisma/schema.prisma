@@ -9,7 +9,8 @@ datasource db {
 
 model Participant {
   id            Int                    @id @default(autoincrement())
-  name          String
+  teamname      String?
+  username      String?
   password      String
   university    String
   course        String
@@ -18,6 +19,7 @@ model Participant {
   email         String                 @unique
   contactNumber String                 @unique
   gender        String?
+  deletedAt     DateTime?
   type          ParticipantType
   members       Member[]
   events        ParticipantsOnEvents[]
@@ -43,10 +45,10 @@ model ParticipantsOnEvents {
   event         Events      @relation(fields: [eventId], references: [id])
   eventId       Int
 
-  @@id([participantId, eventId]) // Composite primary key for many-to-many relation
+  @@id([participantId, eventId])
 }
 
 enum ParticipantType {
   SOLO
-  TEAM
+  MULTI
 }
