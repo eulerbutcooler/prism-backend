@@ -50,5 +50,6 @@ model ParticipantsOnEvents {
 
 enum ParticipantType {
   SOLO
+  TEAM
   MULTI
 }

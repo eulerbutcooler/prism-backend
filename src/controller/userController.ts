@@ -86,12 +86,18 @@ export const updateController = async (req: Request, res: Response) => {
       return;
     }
 
-    // if(body.members){
-    //   const existingMembers = body.members.filter((m: any)=>m.name).map((m:any)=>{
+    if(body.members){
 
-    //   })
-    //   for
-    // }
+      const newMembers = body.members.filter((m:any)=>!m.id).map((m:any)=>{name: m.name})
+
+      const existingMembers = body.members.filter((m: any)=>m.name).map((m:any)=>{
+        where: {
+          id:
+            },
+            data: {
+              name: m.name
+        }
+      })
 
     const updateParticipant = await prisma.participant.update({
       where: {
@@ -140,11 +146,6 @@ export const userDetailsController = async (req: Request, res: Response) => {
         gender: true,
         events: true,
       },
-      // omit: {
-      //   password: true,
-      //   id: true,
-      //   members: false
-      // },
     });
     if (!participant) {
       res.json({ message: "Participant not found" });
