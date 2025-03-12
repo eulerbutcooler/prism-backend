@@ -47,6 +47,26 @@ export const teamController = async (req: Request, res: Response) => {
   }
 };
 
+export const teamExistsController = async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+    const teamStatus = await prisma.participant.findUnique({
+      where: {
+        email: userEmail,
+      },
+      select: {
+        teamname: true,
+        members: true,
+      },
+    });
+
+    res.status(200).json({ message: "Team details: ", teamStatus });
+  } catch (error) {
+    console.error("Team Couldn't be found", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 export const updateController = async (req: Request, res: Response) => {
   try {
     const body = req.body;
@@ -58,6 +78,7 @@ export const updateController = async (req: Request, res: Response) => {
       },
       select: {
         id: true,
+        members: { select: { id: true, name: true } },
       },
     });
     if (!participant) {
@@ -65,54 +86,19 @@ export const updateController = async (req: Request, res: Response) => {
       return;
     }
 
-    const exisitingMembers = body.members
-      .filter((m: any) => m.id)
-      .map((m: any) => m.id);
-    await prisma.member.deleteMany({
-      where: {
-        participantId: participant.id,
-        id: { notIn: exisitingMembers },
-      },
-    });
+    // if(body.members){
+    //   const existingMembers = body.members.filter((m: any)=>m.name).map((m:any)=>{
 
-    const updateMembers = body.members
-      .filter((m: any) => m.id)
-      .map((member: { id: number; name: string }) => ({
-        where: {
-          id: member.id,
-          participantId: participant.id,
-        },
-        data: {
-          name: member.name,
-        },
-      }));
-
-    const createMembers = body.members
-      .filter((m: any) => !m.id)
-      .map((member: { name: string }) => ({
-        name: member.name,
-        participantId: participant.id,
-      }));
+    //   })
+    //   for
+    // }
 
     const updateParticipant = await prisma.participant.update({
       where: {
         email: userEmail,
         deletedAt: null,
       },
-      data: {
-        teamname: body.teamname,
-        username: body.username,
-        university: body.university,
-        course: body.course,
-        department: body.department,
-        year: body.year,
-        gender: body.gender,
-        type: body.type,
-        members: {
-          updateMany: updateMembers,
-          create: createMembers,
-        },
-      },
+      data: { ...body },
       select: {
         teamname: true,
         username: true,
@@ -134,6 +120,42 @@ export const updateController = async (req: Request, res: Response) => {
   }
 };
 
+export const userDetailsController = async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+    const participant = await prisma.participant.findUnique({
+      where: {
+        email: userEmail,
+      },
+      select: {
+        teamname: true,
+        members: true,
+        username: true,
+        university: true,
+        course: true,
+        department: true,
+        year: true,
+        email: true,
+        contactNumber: true,
+        gender: true,
+        events: true,
+      },
+      // omit: {
+      //   password: true,
+      //   id: true,
+      //   members: false
+      // },
+    });
+    if (!participant) {
+      res.json({ message: "Participant not found" });
+      return;
+    }
+    res.status(200).json({ message: "User details are: ", participant });
+  } catch (error) {
+    console.error("Internal server error", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
 export const signupController = async (req: Request, res: Response) => {
   try {
     const body = req.body;

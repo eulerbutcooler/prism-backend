@@ -7,6 +7,8 @@ import {
   teamController,
   updateController,
   deleteController,
+  userDetailsController,
+  teamExistsController,
 } from "../controller/userController";
 import {
   registrationMiddleware,
@@ -22,6 +24,8 @@ userRouter.post(
   existingUser,
   signupController,
 );
+userRouter.get("/teamStatus", authMiddleware, teamExistsController);
+userRouter.get("/dashboard", authMiddleware, userDetailsController);
 userRouter.put("/addTeam", authMiddleware, teamController);
 userRouter.post("/login", loginMiddleware, loginController);
 userRouter.put("/update", authMiddleware, updateController);
