@@ -9,7 +9,6 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
-import { existingUser } from "../middleware/validationMiddleware";
 dotenv.config();
 
 export const teamController = async (req: Request, res: Response) => {
@@ -85,6 +84,12 @@ export const updateController = async (req: Request, res: Response) => {
       res.status(400).json({ message: "Participant not found" });
       return;
     }
+
+    delete body?.password;
+    delete body?.id;
+    delete body?.deletedAt;
+    delete body?.email;
+    delete body?.contactNumber;
 
     if (body.members) {
       const existingMembers = await prisma.member.findMany({

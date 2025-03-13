@@ -11,10 +11,41 @@ const loginSchema = z.object({
     .max(12, { message: "Password can only be 12 characters long" }),
 });
 
-const updateSchema = z.object({});
+const updateSchema = z.object({
+  teamname: z.string({ message: "Name is required" }).optional(),
+  username: z.string({ message: "Name is required" }).optional(),
+  course: z.string({ message: "Course is required" }).optional(),
+  university: z.string().max(72).optional(),
+  department: z
+    .enum(["cse", "ece", "it", "ee", "me", "ce"], {
+      message: "Invalid department",
+    })
+    .optional(),
+  year: z
+    .enum(["1st", "2nd", "3rd", "4th"], {
+      message: "Invalid academic year",
+    })
+    .optional(),
+  email: z.string().email({ message: "Invalid email" }).optional(),
+  password: z
+    .string()
+    .min(8, { message: "Password must be 8 characters long" })
+    .max(12, { message: "Password can only be 12 characters long" })
+    .optional(),
+  contactNumber: z
+    .string()
+    .max(10, { message: "Invalid contact number" })
+    .optional(),
+  gender: z
+    .enum(["Male", "Female", "Other", ""], {
+      message: "Invalid gender details",
+    })
+    .optional(),
+  type: z.enum(["SOLO", "TEAM", "MULTI"], { message: "Invalid" }).optional(),
+});
 
 const registrationSchema = z.object({
-  name: z.string({ message: "Name is required" }),
+  username: z.string({ message: "Name is required" }),
   course: z.string({ message: "Course is required" }),
   university: z.string().max(72),
   department: z.enum(["cse", "ece", "it", "ee", "me", "ce"], {
