@@ -72,26 +72,52 @@ const memberSchema = z.object({
   name: z.string().min(1, "Member name is required"),
 });
 
-const soloParticipationSchema = registrationSchema.extend({
-  type: z.literal("SOLO"),
+const teamSchema = z.object({
+  type: z.literal("MULTI"),
+  teamname: z.string({ message: "Team name is required" }),
+  members: z
+    .array(memberSchema)
+    .max(3, "Team can have maximum 4 members (including leader)"),
 });
 
-const teamParticipationSchema = registrationSchema.extend({
-  type: z.literal("TEAM"),
-  members: z.array(memberSchema).min(3, "Team must have 3 or more members"),
-});
+export const teamCreationMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const parsedBody = teamSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    res
+      .status(400)
+      .json({ error: "Invalid details", details: parsedBody.error.errors });
+    return;
+  }
+  req.body = parsedBody.data;
+  next();
+};
 
-const participantSchema = z.union([
-  soloParticipationSchema,
-  teamParticipationSchema,
-]);
+export const updateMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const parsedBody = updateSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    res
+      .status(400)
+      .json({ error: "Invalid details", details: parsedBody.error.errors });
+    return;
+  }
+  req.body = parsedBody.data;
+  next();
+};
 
 export const registrationMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const parsedBody = participantSchema.safeParse(req.body);
+  const parsedBody = registrationSchema.safeParse(req.body);
   if (!parsedBody.success) {
     res
       .status(400)

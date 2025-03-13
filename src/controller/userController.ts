@@ -14,10 +14,10 @@ dotenv.config();
 export const teamController = async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    const userEmail = (req as any).user.email;
+    const userId = (req as any).user.id;
     const participant = await prisma.participant.findUnique({
       where: {
-        email: userEmail,
+        id: userId,
       },
     });
     if (!participant) {
@@ -26,7 +26,7 @@ export const teamController = async (req: Request, res: Response) => {
     }
     const addTeam = await prisma.participant.update({
       where: {
-        email: userEmail,
+        id: userId,
       },
       data: {
         type: "MULTI",
@@ -49,10 +49,10 @@ export const teamController = async (req: Request, res: Response) => {
 
 export const teamExistsController = async (req: Request, res: Response) => {
   try {
-    const userEmail = (req as any).user.email;
+    const userId = (req as any).user.id;
     const teamStatus = await prisma.participant.findUnique({
       where: {
-        email: userEmail,
+        id: userId,
       },
       select: {
         teamname: true,
@@ -70,11 +70,11 @@ export const teamExistsController = async (req: Request, res: Response) => {
 export const updateController = async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    const userEmail = (req as any).user.email;
-
+    const userId = (req as any).user.id;
+    console.log(userId);
     const participant = await prisma.participant.findUnique({
       where: {
-        email: userEmail,
+        id: userId,
       },
       select: {
         id: true,
@@ -142,7 +142,7 @@ export const updateController = async (req: Request, res: Response) => {
 
     const updateParticipant = await prisma.participant.update({
       where: {
-        email: userEmail,
+        id: userId,
         deletedAt: null,
       },
       data: { ...body },
@@ -169,10 +169,10 @@ export const updateController = async (req: Request, res: Response) => {
 
 export const userDetailsController = async (req: Request, res: Response) => {
   try {
-    const userEmail = (req as any).user.email;
+    const userId = (req as any).user.id;
     const participant = await prisma.participant.findUnique({
       where: {
-        email: userEmail,
+        id: userId,
       },
       select: {
         teamname: true,
@@ -223,7 +223,21 @@ export const signupController = async (req: Request, res: Response) => {
       },
     });
 
-    const token = generateToken(body.email);
+    const participant = await prisma.participant.findUnique({
+      where: {
+        email: body.email,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!participant) {
+      res.status(404).json({ message: "Participant not found" });
+      return;
+    }
+
+    const token = generateToken(participant.id);
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,
@@ -240,10 +254,10 @@ export const signupController = async (req: Request, res: Response) => {
 
 export const deleteController = async (req: Request, res: Response) => {
   try {
-    const userEmail = (req as any).user.email;
+    const userId = (req as any).user.id;
     await prisma.participant.update({
       where: {
-        email: userEmail,
+        id: userId,
       },
       data: {
         deletedAt: new Date(),
@@ -257,7 +271,7 @@ export const loginController = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const user = await prisma.participant.findUnique({
       where: { email, deletedAt: null },
-      select: { password: true },
+      select: { password: true, id: true },
     });
 
     if (!user || !(await comparePasswords(password, user.password))) {
@@ -265,7 +279,7 @@ export const loginController = async (req: Request, res: Response) => {
       return;
     }
 
-    const token = generateToken(email);
+    const token = generateToken(user.id);
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,

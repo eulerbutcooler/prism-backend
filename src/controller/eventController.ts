@@ -4,10 +4,9 @@ import prisma from "../lib/db";
 export const registerController = async (req: Request, res: Response) => {
   try {
     const eventId = parseInt(req.params.eventId);
-    const userEmail = (req as any).user.email;
-
+    const userId = (req as any).user.id;
     const participant = await prisma.participant.findUnique({
-      where: { email: userEmail },
+      where: { id: userId },
       select: { id: true, type: true },
     });
 
@@ -62,11 +61,10 @@ export const registerController = async (req: Request, res: Response) => {
 
 export const unregisterController = async (req: Request, res: Response) => {
   try {
-    const userEmail = (req as any).user.email;
-
+    const userId = (req as any).user.id;
     const participant = await prisma.participant.findUnique({
       where: {
-        email: userEmail,
+        id: userId,
       },
       select: {
         id: true,
@@ -79,7 +77,7 @@ export const unregisterController = async (req: Request, res: Response) => {
       return;
     }
     const { eventId } = req.body;
-    const eventUnregister = await prisma.participantsOnEvents.delete({
+    await prisma.participantsOnEvents.delete({
       where: {
         participantId_eventId: {
           participantId: participant.id,
@@ -96,13 +94,13 @@ export const unregisterController = async (req: Request, res: Response) => {
 
 export const registeredEvents = async (req: Request, res: Response) => {
   try {
-    const userEmail = (req as any).user.email;
+    const userId = (req as any).user.id;
     const events = await prisma.events.findMany({
       where: {
         participants: {
           some: {
             participant: {
-              email: userEmail,
+              id: userId,
             },
           },
         },

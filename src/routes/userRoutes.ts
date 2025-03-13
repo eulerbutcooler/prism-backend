@@ -14,6 +14,8 @@ import {
   registrationMiddleware,
   existingUser,
   loginMiddleware,
+  updateMiddleware,
+  teamCreationMiddleware,
 } from "../middleware/validationMiddleware";
 import { authMiddleware } from "../middleware/authMiddleware";
 const userRouter = express.Router();
@@ -26,9 +28,14 @@ userRouter.post(
 );
 userRouter.get("/teamStatus", authMiddleware, teamExistsController);
 userRouter.get("/dashboard", authMiddleware, userDetailsController);
-userRouter.put("/addTeam", authMiddleware, teamController);
+userRouter.put(
+  "/addTeam",
+  teamCreationMiddleware,
+  authMiddleware,
+  teamController,
+);
 userRouter.post("/login", loginMiddleware, loginController);
-userRouter.put("/update", authMiddleware, updateController);
+userRouter.put("/update", updateMiddleware, authMiddleware, updateController);
 userRouter.patch("/delete", authMiddleware, deleteController);
 userRouter.post("/requestPasswordReset", requestPasswordReset);
 userRouter.post("/resetPassword/:id/:token", resetPassword);

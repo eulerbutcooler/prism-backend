@@ -5,8 +5,8 @@ import { NextFunction, Request, Response } from "express";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || "default_key";
 
-const generateToken = (email: string) => {
-  return jwt.sign({ email }, JWT_SECRET, { expiresIn: "30d" });
+const generateToken = (id: number) => {
+  return jwt.sign({ id }, JWT_SECRET, { expiresIn: "30d" });
 };
 
 const hashPassword = async (password: string) => {
