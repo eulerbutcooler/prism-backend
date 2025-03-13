@@ -34,7 +34,7 @@ const authMiddleware = async (
     const decoded = jwt.verify(token, JWT_SECRET);
     (req as any).user = decoded;
 
-    next(); // Proceed to the next middleware
+    next();
   } catch (err) {
     res.status(403).json({ message: "Forbidden" });
     return;

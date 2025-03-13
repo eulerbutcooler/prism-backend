@@ -25,7 +25,7 @@ export const registerController = async (req: Request, res: Response) => {
       return;
     }
 
-    if (participant.type !== event.type) {
+    if (participant.type === "SOLO" && event.type === "TEAM") {
       res.status(400).json({
         message: `Event requires ${event.type.toLowerCase()} participants`,
       });
