@@ -23,21 +23,22 @@ const authMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.cookies.token;
+  try {
+    const token = req.cookies.token;
 
-  if (!token) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
-  }
-  //@ts-ignore
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      res.status(403).json({ message: "Forbidden" });
+    if (!token) {
+      res.status(401).json({ message: "Unauthorized" });
       return;
     }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
     (req as any).user = decoded;
-    next();
-  });
+
+    next(); // Proceed to the next middleware
+  } catch (err) {
+    res.status(403).json({ message: "Forbidden" });
+    return;
+  }
 };
 
 export { generateToken, hashPassword, comparePasswords, authMiddleware };
