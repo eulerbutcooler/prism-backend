@@ -27,6 +27,7 @@ const authMiddleware = async (
 
   if (!token) {
     res.status(401).json({ message: "Unauthorized" });
+    return;
   }
   //@ts-ignore
   jwt.verify(token, JWT_SECRET, (err, decoded) => {

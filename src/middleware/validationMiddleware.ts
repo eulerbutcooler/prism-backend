@@ -11,10 +11,12 @@ const loginSchema = z.object({
     .max(12, { message: "Password can only be 12 characters long" }),
 });
 
+const updateSchema = z.object({});
+
 const registrationSchema = z.object({
   name: z.string({ message: "Name is required" }),
   course: z.string({ message: "Course is required" }),
-  university: z.string(),
+  university: z.string().max(72),
   department: z.enum(["cse", "ece", "it", "ee", "me", "ce"], {
     message: "Invalid department",
   }),

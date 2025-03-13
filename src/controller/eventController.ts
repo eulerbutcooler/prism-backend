@@ -1,11 +1,10 @@
-import e, { Response, Request } from "express";
+import { Response, Request } from "express";
 import prisma from "../lib/db";
 
 export const registerController = async (req: Request, res: Response) => {
   try {
     const eventId = parseInt(req.params.eventId);
     const userEmail = (req as any).user.email;
-    console.log("user email", userEmail);
 
     const participant = await prisma.participant.findUnique({
       where: { email: userEmail },
