@@ -24,10 +24,10 @@ const authMiddleware = async (
   next: NextFunction,
 ) => {
   try {
-    const token = req.cookies.token;
+    // const token = req.cookies.token;
     console.log("cookie hai kya", req.cookies);
     console.log("headers hai ye", req.headers);
-    // const token = req.headers.authorization?.split(" ")[1];
+    const token = req.headers.authorization?.split(" ")[1];
     console.log("token is this: ", token);
     if (!token) {
       res.status(401).json({ message: "Unauthorized" });
