@@ -17,21 +17,26 @@ const updateSchema = z.object({
   course: z.string({ message: "Course is required" }).optional(),
   university: z.string().max(72).optional(),
   department: z
-    .enum(["cse", "ece", "it", "ee", "me", "ce"], {
-      message: "Invalid department",
-    })
+    .enum(
+      [
+        "Computer Science and Engineering",
+        "Electronics Communication Engineering",
+        "Information Technology",
+        "Electrical Engineering",
+        "Mechanical Engineering",
+        "Civil Engineering",
+      ],
+      {
+        message: "Invalid department",
+      },
+    )
     .optional(),
   year: z
     .enum(["1st", "2nd", "3rd", "4th"], {
       message: "Invalid academic year",
     })
     .optional(),
-  email: z.string().email({ message: "Invalid email" }).optional(), // why are you asking for password in update? @aditya
-  // password: z
-  //   .string()
-  //   .min(8, { message: "Password must be 8 characters long" })
-  //   .max(12, { message: "Password can only be 12 characters long" })
-  //   .optional(),
+  email: z.string().email({ message: "Invalid email" }).optional(),
   contactNumber: z
     .string()
     .max(10, { message: "Invalid contact number" })
@@ -48,9 +53,19 @@ const registrationSchema = z.object({
   username: z.string({ message: "Name is required" }),
   course: z.string({ message: "Course is required" }),
   university: z.string().max(72),
-  department: z.enum(["cse", "ece", "it", "ee", "me", "ce"], {
-    message: "Invalid department",
-  }),
+  department: z.enum(
+    [
+      "Computer Science and Engineering",
+      "Electronics Communication Engineering",
+      "Information Technology",
+      "Electrical Engineering",
+      "Mechanical Engineering",
+      "Civil Engineering",
+    ],
+    {
+      message: "Invalid department",
+    },
+  ),
   year: z.enum(["1st", "2nd", "3rd", "4th"], {
     message: "Invalid academic year",
   }),
