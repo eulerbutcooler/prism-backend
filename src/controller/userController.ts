@@ -240,7 +240,7 @@ export const signupController = async (req: Request, res: Response) => {
     const token = generateToken(participant.id);
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: "/",
@@ -283,7 +283,7 @@ export const loginController = async (req: Request, res: Response) => {
     const token = generateToken(user.id);
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: "/",
