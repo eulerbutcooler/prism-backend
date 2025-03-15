@@ -160,10 +160,10 @@ export const updateController = async (req: Request, res: Response) => {
         contactNumber: true,
       },
     });
-    res.status(201).json({ message: "Updated the user", updateParticipant });
+    res.status(200).json({ message: "Updated the user", updateParticipant }); // 200 not 201 nothing being created @aditya
   } catch (error) {
     console.error("Error updating the participant", error);
-    res.status(401).json({ error: "Couldn't update the participant" });
+    res.status(500).json({ error: "Couldn't update the participant" }); // 500 not 401, ISE not Unauthorized @aditya
   }
 };
 
@@ -206,7 +206,7 @@ export const signupController = async (req: Request, res: Response) => {
 
     await prisma.participant.create({
       data: {
-        username: body.name,
+        username: body.username, // body.username not body.name @aditya
         course: body.course,
         university: body.university,
         department: body.department,

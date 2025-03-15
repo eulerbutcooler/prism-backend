@@ -62,6 +62,8 @@ export const registerController = async (req: Request, res: Response) => {
 export const unregisterController = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const {params:{eventId}} = req;
+    const eventIdNumber = parseInt(eventId);
     const participant = await prisma.participant.findUnique({
       where: {
         id: userId,
@@ -76,12 +78,12 @@ export const unregisterController = async (req: Request, res: Response) => {
       res.status(400).json({ message: "Participant not found" });
       return;
     }
-    const { eventId } = req.body;
+    // const { eventId } = req.body; // parsing error, eventId is string, and eventId in db is int
     await prisma.participantsOnEvents.delete({
       where: {
         participantId_eventId: {
           participantId: participant.id,
-          eventId: eventId,
+          eventId: eventIdNumber,
         },
       },
     });
