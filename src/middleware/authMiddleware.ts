@@ -27,7 +27,6 @@ const authMiddleware = async (
     const token = req.cookies.token;
     console.log("cookie hai kya", req.cookies);
     console.log("headers hai ye", req.headers);
-    console.log("env mein ye hai", JWT_SECRET);
     // const token = req.headers.authorization?.split(" ")[1];
     console.log("token is this: ", token);
     if (!token) {

@@ -296,6 +296,17 @@ export const loginController = async (req: Request, res: Response) => {
   }
 };
 
+export const logoutController = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("token", { path: "/", httpOnly: true, secure: false });
+    res.status(200).json({ message: "Logout successful" });
+    return;
+  } catch (error) {
+    res.status(500).json({ message: "Error logging out", error });
+    return;
+  }
+};
+
 export const requestPasswordReset = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;

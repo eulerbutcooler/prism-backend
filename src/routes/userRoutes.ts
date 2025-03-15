@@ -9,6 +9,7 @@ import {
   deleteController,
   userDetailsController,
   teamExistsController,
+  logoutController,
 } from "../controller/userController";
 import {
   registrationMiddleware,
@@ -35,6 +36,7 @@ userRouter.put(
   teamController,
 );
 userRouter.post("/login", loginMiddleware, loginController);
+userRouter.post("/logout", logoutController);
 userRouter.put("/update", updateMiddleware, authMiddleware, updateController);
 // userRouter.patch("/delete", authMiddleware, deleteController); // what is going on amaan, how can you delete on a patch method, REST API violation @aditya
 userRouter.post("/requestPasswordReset", requestPasswordReset);
