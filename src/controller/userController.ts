@@ -241,10 +241,11 @@ export const signupController = async (req: Request, res: Response) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: "/",
     });
+    console.log("token in signup - ", token);
     res.status(201).json({ message: "Registered successfully" });
   } catch (error) {
     console.error("Error creating team: ", error);
@@ -283,10 +284,11 @@ export const loginController = async (req: Request, res: Response) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: "/",
     });
+    console.log("token in login - ", token);
     res.json({ message: "Login successful", token });
   } catch (error) {
     console.error("Login error: ", error);

@@ -25,7 +25,11 @@ const authMiddleware = async (
 ) => {
   try {
     const token = req.cookies.token;
-
+    console.log("cookie hai kya", req.cookies);
+    console.log("headers hai ye", req.headers);
+    console.log("env mein ye hai", JWT_SECRET);
+    // const token = req.headers.authorization?.split(" ")[1];
+    console.log("token is this: ", token);
     if (!token) {
       res.status(401).json({ message: "Unauthorized" });
       return;
@@ -33,9 +37,9 @@ const authMiddleware = async (
 
     const decoded = jwt.verify(token, JWT_SECRET);
     (req as any).user = decoded;
-
     next();
   } catch (err) {
+    console.log("error ye hai dekho", err);
     res.status(403).json({ message: "Forbidden" });
     return;
   }
