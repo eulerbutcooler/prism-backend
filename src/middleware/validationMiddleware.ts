@@ -26,12 +26,12 @@ const updateSchema = z.object({
       message: "Invalid academic year",
     })
     .optional(),
-  email: z.string().email({ message: "Invalid email" }).optional(),
-  password: z
-    .string()
-    .min(8, { message: "Password must be 8 characters long" })
-    .max(12, { message: "Password can only be 12 characters long" })
-    .optional(),
+  email: z.string().email({ message: "Invalid email" }).optional(), // why are you asking for password in update? @aditya
+  // password: z
+  //   .string()
+  //   .min(8, { message: "Password must be 8 characters long" })
+  //   .max(12, { message: "Password can only be 12 characters long" })
+  //   .optional(),
   contactNumber: z
     .string()
     .max(10, { message: "Invalid contact number" })

@@ -8,6 +8,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 const allowedOrigins = [
+  "https://www.prism2025.tech",
   "https://prism2025.tech",
   "http://localhost:5173",
   "http://localhost:4173",

@@ -30,13 +30,13 @@ userRouter.get("/teamStatus", authMiddleware, teamExistsController);
 userRouter.get("/dashboard", authMiddleware, userDetailsController);
 userRouter.put(
   "/addTeam",
+  authMiddleware, // check auth before validating body @aditya
   teamCreationMiddleware,
-  authMiddleware,
   teamController,
 );
 userRouter.post("/login", loginMiddleware, loginController);
 userRouter.put("/update", updateMiddleware, authMiddleware, updateController);
-userRouter.patch("/delete", authMiddleware, deleteController);
+// userRouter.patch("/delete", authMiddleware, deleteController); // what is going on amaan, how can you delete on a patch method, REST API violation @aditya
 userRouter.post("/requestPasswordReset", requestPasswordReset);
 userRouter.post("/resetPassword/:id/:token", resetPassword);
 export default userRouter;
