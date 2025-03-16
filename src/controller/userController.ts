@@ -24,6 +24,18 @@ export const teamController = async (req: Request, res: Response) => {
       res.status(400).json({ message: "Participant not found" });
       return;
     }
+
+    const existingTeamname = await prisma.participant.findUnique({
+      where: {
+        teamname: body.teamnam,
+      },
+    });
+
+    if (existingTeamname) {
+      res.status(400).json({ message: "Teamname already occupied" });
+      return;
+    }
+
     const addTeam = await prisma.participant.update({
       where: {
         id: userId,
@@ -90,6 +102,18 @@ export const updateController = async (req: Request, res: Response) => {
     delete body?.deletedAt;
     delete body?.email;
     delete body?.contactNumber;
+
+    if (body.teamname) {
+      const existingTeamname = await prisma.participant.findUnique({
+        where: {
+          teamname: body.name,
+        },
+      });
+      if (existingTeamname) {
+        res.status(400).json({ message: "Team name already exists" });
+        return;
+      }
+    }
 
     if (body.members) {
       const existingMembers = await prisma.member.findMany({
@@ -206,7 +230,7 @@ export const signupController = async (req: Request, res: Response) => {
 
     await prisma.participant.create({
       data: {
-        username: body.username, // body.username not body.name @aditya
+        username: body.username,
         course: body.course,
         university: body.university,
         department: body.department,
@@ -238,13 +262,13 @@ export const signupController = async (req: Request, res: Response) => {
     }
 
     const token = generateToken(participant.id);
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   secure: false,
-    //   sameSite: "lax",
-    //   maxAge: 30 * 24 * 60 * 60 * 1000,
-    //   path: "/",
-    // });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
     console.log("token in signup - ", token);
     res.status(201).json({ message: "Registered successfully" });
   } catch (error) {

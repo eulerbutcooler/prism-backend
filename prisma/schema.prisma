@@ -9,7 +9,7 @@ datasource db {
 
 model Participant {
   id            Int                    @id @default(autoincrement())
-  teamname      String?
+  teamname      String?                @unique
   username      String?
   password      String
   university    String
