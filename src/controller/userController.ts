@@ -27,7 +27,7 @@ export const teamController = async (req: Request, res: Response) => {
 
     const existingTeamname = await prisma.participant.findUnique({
       where: {
-        teamname: body.teamnam,
+        teamname: body.teamname,
       },
     });
 
@@ -106,7 +106,7 @@ export const updateController = async (req: Request, res: Response) => {
     if (body.teamname) {
       const existingTeamname = await prisma.participant.findUnique({
         where: {
-          teamname: body.name,
+          teamname: body.teamname,
         },
       });
       if (existingTeamname) {
