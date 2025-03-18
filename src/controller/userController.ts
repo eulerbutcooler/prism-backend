@@ -262,15 +262,15 @@ export const signupController = async (req: Request, res: Response) => {
     }
 
     const token = generateToken(participant.id);
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: false,
+    //   sameSite: "lax",
+    //   maxAge: 30 * 24 * 60 * 60 * 1000,
+    //   path: "/",
+    // });
     console.log("token in signup - ", token);
-    res.status(201).json({ message: "Registered successfully" });
+    res.status(201).json({ message: "Registered successfully", token });
   } catch (error) {
     console.error("Error creating team: ", error);
     res.status(500).json({ error: "Internal Server Error" });
