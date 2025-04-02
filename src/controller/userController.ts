@@ -11,73 +11,113 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 dotenv.config();
 
-export const teamController = async (req: Request, res: Response) => {
+export const teamRegister = async (req: Request, res: Response) => {
   try {
-    const body = req.body;
-    const userId = (req as any).user.id;
+    const {
+      body,
+      user: { id: userId },
+    } = req as any;
+
     const participant = await prisma.participant.findUnique({
-      where: {
-        id: userId,
-      },
+      where: { id: userId },
     });
     if (!participant) {
       res.status(400).json({ message: "Participant not found" });
       return;
     }
 
-    const existingTeamname = await prisma.participant.findUnique({
-      where: {
-        teamname: body.teamname,
-      },
-    });
-
-    if (existingTeamname) {
-      res.status(400).json({ message: "Teamname already occupied" });
-      return;
-    }
-
-    const addTeam = await prisma.participant.update({
-      where: {
-        id: userId,
-      },
+    const team = await prisma.team.create({
       data: {
-        type: "MULTI",
         teamname: body.teamname,
+        participantId: parseInt(userId),
+        eventId: body.eventId,
         members: {
-          create: body.members,
+          createMany: {
+            data: body.members,
+          },
         },
       },
       select: {
-        teamname: true,
         members: true,
+        event: true,
+        participant: true,
+        teamname: true,
       },
     });
-    res.status(201).json({ message: "Added team", addTeam });
+    res.status(201).json({ message: "Team created successfully", team });
   } catch (error) {
     console.error("Error adding the team", error);
     res.status(401).json({ error: "Couldn't add the team" });
   }
 };
 
-export const teamExistsController = async (req: Request, res: Response) => {
-  try {
-    const userId = (req as any).user.id;
-    const teamStatus = await prisma.participant.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        teamname: true,
-        members: true,
-      },
-    });
+// export const teamController = async (req: Request, res: Response) => {
+//   try {
+//     const body = req.body;
+//     const userId = (req as any).user.id;
+//     const participant = await prisma.participant.findUnique({
+//       where: {
+//         id: userId,
+//       },
+//     });
+//     if (!participant) {
+//       res.status(400).json({ message: "Participant not found" });
+//       return;
+//     }
 
-    res.status(200).json({ message: "Team details: ", teamStatus });
-  } catch (error) {
-    console.error("Team Couldn't be found", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
+//     const existingTeamname = await prisma.participant.findUnique({
+//       where: {
+//         teamname: body.teamname,
+//       },
+//     });
+
+//     if (existingTeamname) {
+//       res.status(400).json({ message: "Teamname already occupied" });
+//       return;
+//     }
+
+//     const addTeam = await prisma.participant.update({
+//       where: {
+//         id: userId,
+//       },
+//       data: {
+//         type: "MULTI",
+//         teamname: body.teamname,
+//         members: {
+//           create: body.members,
+//         },
+//       },
+//       select: {
+//         teamname: true,
+//         members: true,
+//       },
+//     });
+//     res.status(201).json({ message: "Added team", addTeam });
+//   } catch (error) {
+//     console.error("Error adding the team", error);
+//     res.status(401).json({ error: "Couldn't add the team" });
+//   }
+// };
+
+// export const teamExistsController = async (req: Request, res: Response) => {
+//   try {
+//     const userId = (req as any).user.id;
+//     const teamStatus = await prisma.participant.findUnique({
+//       where: {
+//         id: userId,
+//       },
+//       select: {
+//         teamname: true,
+//         members: true,
+//       },
+//     });
+
+//     res.status(200).json({ message: "Team details: ", teamStatus });
+//   } catch (error) {
+//     console.error("Team Couldn't be found", error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
 
 export const updateController = async (req: Request, res: Response) => {
   try {
@@ -103,66 +143,54 @@ export const updateController = async (req: Request, res: Response) => {
     delete body?.email;
     delete body?.contactNumber;
 
-    if (body.teamname) {
-      const existingTeamname = await prisma.participant.findUnique({
-        where: {
-          teamname: body.teamname,
-        },
-      });
-      if (existingTeamname) {
-        res.status(400).json({ message: "Team name already exists" });
-        return;
-      }
-    }
+    // if (body.members) {
+    //   const existingMembers = await prisma.member.findMany({
+    //     where: {
+    //       participantId: participant.id,
+    //     },
+    //     select: {
+    //       name: true,
+    //     },
+    //   });
 
-    if (body.members) {
-      const existingMembers = await prisma.member.findMany({
-        where: {
-          participantId: participant.id,
-        },
-        select: {
-          name: true,
-        },
-      });
+    //   const existingNames = new Set(existingMembers.map((m: any) => m.name));
+    //   const newNames = new Set(body.members.map((m: any) => m.name));
 
-      const existingNames = new Set(existingMembers.map((m: any) => m.name));
-      const newNames = new Set(body.members.map((m: any) => m.name));
+    //   await prisma.member.deleteMany({
+    //     where: {
+    //       participantId: participant.id,
+    //       name: { notIn: Array.from(newNames) as string[] },
+    //     },
+    //   });
 
-      await prisma.member.deleteMany({
-        where: {
-          participantId: participant.id,
-          name: { notIn: Array.from(newNames) as string[] },
-        },
-      });
+    //   const updateMembers = body.members
+    //     .filter((m: any) => existingNames.has(m.name))
+    //     .map((m: any) =>
+    //       prisma.member.updateMany({
+    //         where: {
+    //           participantId: participant.id,
+    //           name: m.name,
+    //         },
+    //         data: {
+    //           name: m.name,
+    //         },
+    //       })
+    //     );
 
-      const updateMembers = body.members
-        .filter((m: any) => existingNames.has(m.name))
-        .map((m: any) =>
-          prisma.member.updateMany({
-            where: {
-              participantId: participant.id,
-              name: m.name,
-            },
-            data: {
-              name: m.name,
-            },
-          }),
-        );
+    //   const createMembers = body.members
+    //     .filter((m: any) => !existingNames.has(m.name))
+    //     .map((m: any) =>
+    //       prisma.member.create({
+    //         data: {
+    //           name: m.name,
+    //           participantId: participant.id,
+    //         },
+    //       })
+    //     );
 
-      const createMembers = body.members
-        .filter((m: any) => !existingNames.has(m.name))
-        .map((m: any) =>
-          prisma.member.create({
-            data: {
-              name: m.name,
-              participantId: participant.id,
-            },
-          }),
-        );
-
-      Promise.all([...createMembers, ...updateMembers]);
-      delete body.members;
-    }
+    //   Promise.all([...createMembers, ...updateMembers]);
+    //   delete body.members;
+    // }
 
     const updateParticipant = await prisma.participant.update({
       where: {
@@ -171,17 +199,26 @@ export const updateController = async (req: Request, res: Response) => {
       },
       data: { ...body },
       select: {
-        teamname: true,
         username: true,
         university: true,
         course: true,
         department: true,
         year: true,
-        gender: true,
-        type: true,
-        members: true,
         email: true,
         contactNumber: true,
+        gender: true,
+        events: {
+          select: {
+            event: true,
+          },
+        },
+        team: {
+          select: {
+            event: true,
+            teamname: true,
+            members: { select: { name: true } },
+          },
+        },
       },
     });
     res.status(200).json({ message: "Updated the user", updateParticipant }); // 200 not 201 nothing being created @aditya
@@ -199,8 +236,6 @@ export const userDetailsController = async (req: Request, res: Response) => {
         id: userId,
       },
       select: {
-        teamname: true,
-        members: true,
         username: true,
         university: true,
         course: true,
@@ -209,57 +244,44 @@ export const userDetailsController = async (req: Request, res: Response) => {
         email: true,
         contactNumber: true,
         gender: true,
-        events: true,
+        events: {
+          select: {
+            event: true,
+          },
+        },
+        team: {
+          select: {
+            event: true,
+            teamname: true,
+            members: { select: { name: true } },
+          },
+        },
       },
     });
     if (!participant) {
       res.json({ message: "Participant not found" });
       return;
     }
-    res.status(200).json({ message: "User details are: ", participant });
+    res.status(200).json({ message: "Participant found successfully ", participant });
   } catch (error) {
     console.error("Internal server error", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
+
 export const signupController = async (req: Request, res: Response) => {
   try {
     const body = req.body;
 
     const hashedPassword = await hashPassword(body.password);
 
-    await prisma.participant.create({
+    const participant = await prisma.participant.create({
       data: {
-        username: body.username,
-        course: body.course,
-        university: body.university,
-        department: body.department,
-        year: body.year,
-        email: body.email,
+        ...body,
         password: hashedPassword,
-        contactNumber: body.contactNumber,
-        gender: body.gender,
-        type: body.type,
         deletedAt: null,
-        members: {
-          create: body.members,
-        },
       },
     });
-
-    const participant = await prisma.participant.findUnique({
-      where: {
-        email: body.email,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!participant) {
-      res.status(404).json({ message: "Participant not found" });
-      return;
-    }
 
     const token = generateToken(participant.id);
     // res.cookie("token", token, {
@@ -269,7 +291,6 @@ export const signupController = async (req: Request, res: Response) => {
     //   maxAge: 30 * 24 * 60 * 60 * 1000,
     //   path: "/",
     // });
-    console.log("token in signup - ", token);
     res.status(201).json({ message: "Registered successfully", token });
   } catch (error) {
     console.error("Error creating team: ", error);
@@ -277,19 +298,19 @@ export const signupController = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteController = async (req: Request, res: Response) => {
-  try {
-    const userId = (req as any).user.id;
-    await prisma.participant.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        deletedAt: new Date(),
-      },
-    });
-  } catch (error) {}
-};
+// export const deleteController = async (req: Request, res: Response) => {
+//   try {
+//     const userId = (req as any).user.id;
+//     await prisma.participant.update({
+//       where: {
+//         id: userId,
+//       },
+//       data: {
+//         deletedAt: new Date(),
+//       },
+//     });
+//   } catch (error) {}
+// };
 
 export const loginController = async (req: Request, res: Response) => {
   try {
@@ -312,7 +333,6 @@ export const loginController = async (req: Request, res: Response) => {
     //   maxAge: 30 * 24 * 60 * 60 * 1000,
     //   path: "/",
     // });
-    console.log("token in login - ", token);
     res.json({ message: "Login successful", token });
   } catch (error) {
     console.error("Login error: ", error);
@@ -320,16 +340,16 @@ export const loginController = async (req: Request, res: Response) => {
   }
 };
 
-export const logoutController = async (req: Request, res: Response) => {
-  try {
-    res.clearCookie("token", { path: "/", httpOnly: true, secure: false });
-    res.status(200).json({ message: "Logout successful" });
-    return;
-  } catch (error) {
-    res.status(500).json({ message: "Error logging out", error });
-    return;
-  }
-};
+// export const logoutController = async (req: Request, res: Response) => {
+//   try {
+//     res.clearCookie("token", { path: "/", httpOnly: true, secure: false });
+//     res.status(200).json({ message: "Logout successful" });
+//     return;
+//   } catch (error) {
+//     res.status(500).json({ message: "Error logging out", error });
+//     return;
+//   }
+// };
 
 export const requestPasswordReset = async (req: Request, res: Response) => {
   try {
@@ -355,7 +375,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       expiresIn: "1h",
     });
     const backend_url = process.env.BACKEND_URL;
-    const resetUrl = `http://localhost:5173/passwordReset/${user.id}/${token}`;
+    const resetUrl = `${backend_url}/passwordReset/${user.id}/${token}`;
 
     const transporter = nodemailer.createTransport({
       host: "smtp.titan.email",

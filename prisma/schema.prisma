@@ -9,8 +9,7 @@ datasource db {
 
 model Participant {
   id            Int                    @id @default(autoincrement())
-  teamname      String?                @unique
-  username      String?
+  username      String
   password      String
   university    String
   course        String
@@ -20,16 +19,25 @@ model Participant {
   contactNumber String                 @unique
   gender        String?
   deletedAt     DateTime?
-  type          ParticipantType
-  members       Member[]
   events        ParticipantsOnEvents[]
+  team          Team[]
+}
+
+model Team {
+  id            Int         @id @default(autoincrement())
+  teamname      String
+  participantId Int
+  participant   Participant @relation(fields: [participantId], references: [id])
+  members       Member[]
+  eventId       Int
+  event         Events      @relation(fields: [eventId], references: [id])
 }
 
 model Member {
-  id            Int         @id @default(autoincrement())
-  name          String
-  participant   Participant @relation(fields: [participantId], references: [id])
-  participantId Int
+  id     Int    @id @default(autoincrement())
+  name   String
+  teamId Int
+  team   Team   @relation(fields: [teamId], references: [id])
 }
 
 model Events {
@@ -37,6 +45,7 @@ model Events {
   name         String                 @unique
   type         ParticipantType
   participants ParticipantsOnEvents[]
+  Team         Team[]
 }
 
 model ParticipantsOnEvents {

@@ -12,10 +12,9 @@ const loginSchema = z.object({
 });
 
 const updateSchema = z.object({
-  teamname: z.string({ message: "Name is required" }).optional(),
   username: z.string({ message: "Name is required" }).optional(),
-  course: z.string({ message: "Course is required" }).optional(),
   university: z.string().max(72).optional(),
+  course: z.string({ message: "Course is required" }).optional(),
   department: z
     .enum(
       [
@@ -28,7 +27,7 @@ const updateSchema = z.object({
       ],
       {
         message: "Invalid department",
-      },
+      }
     )
     .optional(),
   year: z
@@ -46,13 +45,16 @@ const updateSchema = z.object({
       message: "Invalid gender details",
     })
     .optional(),
-  type: z.enum(["SOLO", "TEAM", "MULTI"], { message: "Invalid" }).optional(),
 });
 
 const registrationSchema = z.object({
   username: z.string({ message: "Name is required" }),
-  course: z.string({ message: "Course is required" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be 8 characters long" })
+    .max(12, { message: "Password can only be 12 characters long" }),
   university: z.string().max(72),
+  course: z.string({ message: "Course is required" }),
   department: z.enum(
     [
       "Computer Science and Engineering",
@@ -64,23 +66,18 @@ const registrationSchema = z.object({
     ],
     {
       message: "Invalid department",
-    },
+    }
   ),
   year: z.enum(["1st", "2nd", "3rd", "4th"], {
     message: "Invalid academic year",
   }),
   email: z.string().email({ message: "Invalid email" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be 8 characters long" })
-    .max(12, { message: "Password can only be 12 characters long" }),
   contactNumber: z.string().max(10, { message: "Invalid contact number" }),
   gender: z
     .enum(["Male", "Female", "Other", ""], {
       message: "Invalid gender details",
     })
     .optional(),
-  type: z.enum(["SOLO", "TEAM", "MULTI"], { message: "Invalid" }),
 });
 
 const memberSchema = z.object({
@@ -98,7 +95,7 @@ const teamSchema = z.object({
 export const teamCreationMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const parsedBody = teamSchema.safeParse(req.body);
   if (!parsedBody.success) {
@@ -114,7 +111,7 @@ export const teamCreationMiddleware = (
 export const updateMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const parsedBody = updateSchema.safeParse(req.body);
   if (!parsedBody.success) {
@@ -130,7 +127,7 @@ export const updateMiddleware = (
 export const registrationMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const parsedBody = registrationSchema.safeParse(req.body);
   if (!parsedBody.success) {
@@ -146,7 +143,7 @@ export const registrationMiddleware = (
 export const loginMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const parsedBody = loginSchema.safeParse(req.body);
   if (!parsedBody.success) {
@@ -162,7 +159,7 @@ export const loginMiddleware = (
 export const existingUser = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { email, contactNumber } = req.body;
@@ -183,4 +180,47 @@ export const existingUser = async (
     console.error("Error checking user: ", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
+};
+
+const teamRegisterSchema = z.object({
+  teamname: z.string({ message: "team name is required" }),
+  eventId: z.number({ message: "event id is required" }),
+  members: z.array(memberSchema),
+});
+
+export const teamRegisterMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const parsedBody = teamRegisterSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    res
+      .status(400)
+      .json({ error: "Invalid details", details: parsedBody.error.errors });
+    return;
+  }
+  req.body = parsedBody.data;
+  next();
+};
+
+const registerTeamEventSchema = z.object({
+  teamname: z.string({ message: "team name is required" }),
+  members: z.array(memberSchema),
+});
+
+export const registerTeamEventValidation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const parsedBody = registerTeamEventSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    res
+      .status(400)
+      .json({ error: "Invalid details", details: parsedBody.error.errors });
+    return;
+  }
+  req.body = parsedBody.data;
+  next();
 };
