@@ -26,7 +26,7 @@ const userRouter = express.Router();
 // Done
 userRouter.post(
   "/register",
-
+  registrationMiddleware,
   existingUser,
   signupController,
 );

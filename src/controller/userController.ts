@@ -262,7 +262,9 @@ export const userDetailsController = async (req: Request, res: Response) => {
       res.json({ message: "Participant not found" });
       return;
     }
-    res.status(200).json({ message: "Participant found successfully ", participant });
+    res
+      .status(200)
+      .json({ message: "Participant found successfully ", participant });
   } catch (error) {
     console.error("Internal server error", error);
     res.status(500).json({ message: "Server Error" });
@@ -271,14 +273,31 @@ export const userDetailsController = async (req: Request, res: Response) => {
 
 export const signupController = async (req: Request, res: Response) => {
   try {
-    const body = req.body;
+    const {
+      username,
+      password,
+      university,
+      course,
+      department,
+      year,
+      email,
+      contactNumber,
+      gender,
+    } = req.body;
 
-    const hashedPassword = await hashPassword(body.password);
+    const hashedPassword = await hashPassword(password);
 
     const participant = await prisma.participant.create({
       data: {
-        ...body,
+        username: username,
         password: hashedPassword,
+        university: university,
+        course: course,
+        department: department,
+        year: year,
+        email: email,
+        contactNumber: contactNumber,
+        gender: gender,
         deletedAt: null,
       },
     });
