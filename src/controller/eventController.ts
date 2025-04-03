@@ -270,16 +270,69 @@ export const unregisterController = async (req: Request, res: Response) => {
   }
 };
 
+// export const registeredEvents = async (req: Request, res: Response) => {
+//   try {
+//     const userId = (req as any).user.id;
+//     const events = await prisma.participant.findUnique({
+//       where: { id: userId },
+//       select: {
+//         events: true,
+//         team: { select: { event: true } },
+//       },
+//     });
+//     // const events = await prisma.events.findMany({
+//     //   where: {
+//     //     participants: {
+//     //       some: {
+//     //         participant: {
+//     //           id: userId,
+//     //         },
+//     //       },
+//     //     },
+//     //   },
+//     // });
+//     res.status(200).json(events);
+//   } catch (error) {
+//     console.error("Error finding user registered events:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
+
 export const registeredEvents = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    const events = await prisma.participant.findUnique({
+
+    let events = [];
+
+    const userEvents = await prisma.participant.findUnique({
       where: { id: userId },
       select: {
-        events: true,
-        team: { select: { event: true } },
+        events: {
+          select: {
+            eventId: true,
+          },
+        },
       },
     });
+    if (userEvents && userEvents.events) {
+      events.push(...userEvents.events.map((e) => e.eventId));
+    }
+
+    const teamEvents = await prisma.participant.findUnique({
+      where: { id: userId },
+      select: {
+        team: {
+          select: {
+            eventId: true,
+          },
+        },
+      },
+    });
+    if (teamEvents && teamEvents.team) {
+      events.push(...teamEvents.team.map((t) => t.eventId));
+    }
+
+    // events
     // const events = await prisma.events.findMany({
     //   where: {
     //     participants: {
