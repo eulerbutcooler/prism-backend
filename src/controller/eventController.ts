@@ -63,7 +63,7 @@ export const registerController = async (req: Request, res: Response) => {
 
 export const registerTeamEventController = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   try {
     const {
@@ -111,7 +111,7 @@ export const registerTeamEventController = async (
             data: body.members.map(
               (member: { name: string; email: string }) => ({
                 name: member.name,
-              })
+              }),
             ),
           },
         },

@@ -23,14 +23,12 @@ import {
 import { authMiddleware } from "../middleware/authMiddleware";
 const userRouter = express.Router();
 
-
-
 // Done
 userRouter.post(
   "/register",
-  registrationMiddleware,
+
   existingUser,
-  signupController
+  signupController,
 );
 userRouter.post("/login", loginMiddleware, loginController);
 // userRouter.post("/team", authMiddleware, teamRegisterMiddleware, teamRegister);
@@ -39,9 +37,6 @@ userRouter.put("/update", authMiddleware, updateMiddleware, updateController);
 userRouter.post("/requestPasswordReset", requestPasswordReset);
 userRouter.post("/resetPassword/:id/:token", resetPassword);
 // userRouter.get("/teamStatus", authMiddleware, teamExistsController);
-
-
-
 
 // Pending
 
@@ -53,7 +48,7 @@ userRouter.post("/resetPassword/:id/:token", resetPassword);
 // );
 
 // userRouter.post("/logout", logoutController);
-// userRouter.patch("/delete", authMiddleware, deleteController); 
+// userRouter.patch("/delete", authMiddleware, deleteController);
 // // what is going on amaan, how can you delete on a patch method, REST API violation @aditya
 
 export default userRouter;
