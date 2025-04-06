@@ -40,7 +40,7 @@ export const registerController = async (req: Request, res: Response) => {
     }
 
     // Check if event type is solo
-    if (event.type !== "SOLO") {
+    if (event.type !== "SOLO" && event.type !== "MULTI") {
       res.status(400).json({
         message: "Event required team participation",
       });
@@ -63,7 +63,7 @@ export const registerController = async (req: Request, res: Response) => {
 
 export const registerTeamEventController = async (
   req: Request,
-  res: Response,
+  res: Response
 ) => {
   try {
     const {
@@ -103,6 +103,14 @@ export const registerTeamEventController = async (
       return;
     }
 
+    // Check if event type is team or multi
+    if (event.type !== "TEAM" && event.type !== "MULTI") {
+      res.status(400).json({
+        message: "Event required team participation",
+      });
+      return;
+    }
+
     const team = await prisma.team.create({
       data: {
         teamname: body.teamname,
@@ -111,7 +119,7 @@ export const registerTeamEventController = async (
             data: body.members.map(
               (member: { name: string; email: string }) => ({
                 name: member.name,
-              }),
+              })
             ),
           },
         },
@@ -191,6 +199,77 @@ export const unregisterController = async (req: Request, res: Response) => {
           },
         },
       });
+    } else if (event.type === "MULTI") {
+      const eventRegisteredSolo = await prisma.participant.findFirst({
+        where: {
+          id: userId,
+          events: {
+            some: {
+              eventId: parseInt(eventId),
+              participantId: userId,
+            },
+          },
+        },
+      });
+      if (eventRegisteredSolo) {
+        await prisma.participant.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            events: {
+              delete: {
+                participantId_eventId: {
+                  participantId: userId,
+                  eventId: eventIdNumber,
+                },
+              },
+            },
+          },
+        });
+      } else {
+        const eventRegisteredTeam = await prisma.participant.findFirst({
+          where: {
+            id: userId,
+            team: {
+              some: {
+                event: {
+                  id: parseInt(eventId),
+                },
+              },
+            },
+          },
+        });
+        if (eventRegisteredTeam) {
+          const team = await prisma.team.findFirst({
+            where: {
+              eventId: parseInt(eventId),
+              participantId: parseInt(userId),
+            },
+            select: { id: true },
+          });
+
+          if (!team) {
+            res.status(400).json({ message: "Team not found" });
+            return;
+          }
+
+          // Delete related members before deleting the team
+          await prisma.member.deleteMany({
+            where: {
+              teamId: team.id,
+            },
+          });
+          await prisma.team.delete({
+            where: {
+              id: team.id,
+            },
+          });
+        } else {
+          res.status(400).json({ message: "Event registration not found" });
+          return;
+        }
+      }
     } else {
       const eventRegistered = await prisma.participant.findFirst({
         where: {
@@ -208,6 +287,7 @@ export const unregisterController = async (req: Request, res: Response) => {
         res.status(400).json({ message: "Event registration not found" });
         return;
       }
+
       const team = await prisma.team.findFirst({
         where: {
           eventId: parseInt(eventId),
